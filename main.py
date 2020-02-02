@@ -1,7 +1,7 @@
 import sys
 import spotipy
 import spotipy.util as util
-from secret import token
+import secret
 
 
 def print_info(track):
@@ -23,6 +23,7 @@ class Track:
 
 class Playlist:
     def __init__(self, name, p_id):
+        self.name = name
         tracks = sp.playlist_tracks(p_id)
         self.tracks = []
         for t in tracks['items']:
@@ -37,8 +38,11 @@ def playlist_info():
     for p in results['items']:
         new_playlist = Playlist(name=p['name'], p_id=p['id'])
         playlist_list.append(new_playlist)
+        print(new_playlist.name)
         print(new_playlist.tracks) 
+        print()
 
+token = secret.token
 
 if token:
     sp = spotipy.Spotify(auth=token)

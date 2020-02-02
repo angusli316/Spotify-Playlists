@@ -30,11 +30,12 @@ class Track:
 class Playlist:
     def __init__(self, name, p_id):
         self.name = name
+        self.id = p_id
         tracks = sp.playlist_tracks(p_id)
         self.tracks = set()
         try:
             for t in tracks['items']:
-                #print(t['track']['artists'][0]['name'])
+                print(t['track']['id'])
                 track_object = t['track']['name'], t['track']['artists'][0]['name']
                 if track_object in song_freq:
                     song_freq[track_object] += 1
@@ -69,6 +70,43 @@ def user_info():
     user_info = sp.current_user()
     print(user_info)
 
+def playlist_intersect():
+    taking_input = True
+    playlists = list()
+    pattern = '([\w:/.]+/playlist/)(?P<id>[\w]+)(\?[\w=]+)*'
+    prog = re.compile(pattern)
+    
+    while taking_input:
+        pl = input("Link to playlist, 'done' otherwise: ")
+        if pl == 'done':
+            if playlists:
+                taking_input = False
+            else:
+                print('Playlist list cannot be empty')
+        else:
+            if prog.match(pl):
+                playlists.append(pl)
+            else:
+                print('Invalid URL - Could not find playlist ID')
+    
+    # .group('id')
+    common = set()
+    for link in playlists:
+        print(prog.match(link).group('id'))
+        p = sp.playlist(prog.match(link).group('id'))
+        one = Playlist(name=p['name'], p_id=p['id'])
+        if not common:
+            common = one.tracks
+        else:
+            common = one.intersection(common)
+
+def playlist_destruct(p):
+     s_id = ['2bJvI42r8EF3wxjOuDav4r']
+     sp.user_playlist_replace_tracks(sp.me()['id'], p.id, s_id)
+
+     #image_path = 'swag.png'
+     #sp.playlist_upload_cover_image(p.id, image_path)
+
 token = secret.token
 
 if token:
@@ -100,21 +138,11 @@ if token:
             else:
                 print('Invalid URL - Could not find playlist ID')
             
-    # .group('id')
-    common = set()
     for link in playlists:
-        print(prog.match(link).group('id'))
+        #print(prog.match(link).group('id'))
         p = sp.playlist(prog.match(link).group('id'))
-        one = Playlist(name=p['name'], p_id=p['id'])
-        if not common:
-            common = one.tracks
-        else:
-            common = one.intersection(common)
-        #print(one.name)
-        #print(one.tracks)
-        #print()
-    
-    print(common)
+        plist = Playlist(name=p['name'], p_id=p['id'])
+        playlist_destruct(plist)
    
      
  

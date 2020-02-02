@@ -2,7 +2,7 @@ import sys
 import spotipy
 import spotipy.util as util
 import secret
-
+import re
 
 def print_info(track):
     print(track['name'] + ' - ' + track['artists'][0]['name'] + ' - ' + str(track['popularity']))
@@ -28,14 +28,17 @@ class Playlist:
         self.name = name
         tracks = sp.playlist_tracks(p_id)
         self.tracks = []
-        for t in tracks['items']:
-            #print(t['track']['artists'][0]['name'])
-            track_object = t['track']['name'], t['track']['artists'][0]['name']
-            if track_object in song_freq:
-                song_freq[track_object] += 1
-            else:
-                song_freq[track_object] = 1
-            self.tracks.append(Track(name=track_object[0], artist=track_object[1]))
+        try:
+            for t in tracks['items']:
+                #print(t['track']['artists'][0]['name'])
+                track_object = t['track']['name'], t['track']['artists'][0]['name']
+                if track_object in song_freq:
+                    song_freq[track_object] += 1
+                else:
+                    song_freq[track_object] = 1
+                self.tracks.append(Track(name=track_object[0], artist=track_object[1]))
+        except TypeError:
+            pass
 
 
 def playlist_info():
@@ -72,12 +75,35 @@ if token:
     #playlist_info()
     #follow_info()
     #user_info()
-    p = sp.playlist('37i9dQZEVXcSJQ5VDQlufK')
-    one = Playlist(name=p['name'], p_id=p['id'])
-    print(one.name)
-    print(one.tracks)
-    print()
-   
+    
+    taking_input = True
+    playlists = list()
+    pattern = '([\w:/.]+/playlist/)(?P<id>[\w]+)(\?[\w=]+)*'
+    prog = re.compile(pattern)
+    
+    while taking_input:
+        pl = input("Link to playlist, 'done' otherwise: ")
+        if pl == 'done':
+            if playlists:
+                taking_input = False
+            else:
+                print('Playlist list cannot be empty')
+        else:
+            if prog.match(pl):
+                playlists.append(pl)
+            else:
+                print('Invalid URL - Could not find playlist ID')
+            
+    # .group('id')
+    for link in playlists:
+        print(prog.match(link).group('id'))
+        p = sp.playlist(prog.match(link).group('id'))
+        #p = sp.playlist('37i9dQZEVXcSJQ5VDQlufK')
+        one = Playlist(name=p['name'], p_id=p['id'])
+        print(one.name)
+        print(one.tracks)
+        print()
+       
  
     '''
     tracks = results['items']

@@ -39,7 +39,7 @@ class Playlist:
 
 
 def playlist_info():
-    results = sp.current_user_playlists()
+    results = sp.current_user_playlists(50)
     playlist_list = []
   
     for p in results['items']:
@@ -48,9 +48,17 @@ def playlist_info():
         print(new_playlist.name)
         print(new_playlist.tracks) 
         print()
-
+    
     for track in sorted(song_freq.items(), key= lambda t:t[1], reverse=True):
         print(track)
+    
+def follow_info():
+    users = sp.user_follow_users()
+    print(users)
+
+def user_info():
+    user_info = sp.current_user()
+    print(user_info)
 
 token = secret.token
 
@@ -61,7 +69,16 @@ if token:
     #results = sp.current_user_top_tracks(limit=100)
     
     #history()
-    playlist_info()
+    #playlist_info()
+    #follow_info()
+    #user_info()
+    p = sp.playlist('37i9dQZEVXcSJQ5VDQlufK')
+    one = Playlist(name=p['name'], p_id=p['id'])
+    print(one.name)
+    print(one.tracks)
+    print()
+   
+ 
     '''
     tracks = results['items']
     for track in sorted(tracks, key= lambda t:t['popularity'], reverse=True):
@@ -74,6 +91,4 @@ if token:
 
 else:
     print("Can't get token for", username)
-
-
 

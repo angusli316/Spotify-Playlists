@@ -1,18 +1,8 @@
 import sys
 import spotipy
 import spotipy.util as util
+from secret import token
 
-scoping = 'user-library-read'
-reading = 'user-top-read'
-recent = 'user-read-recently-played'
-
-scope = recent
-
-if len(sys.argv) > 1:
-    username = sys.argv[1]
-else:
-    print("Usage: %s username" % (sys.argv[0],))
-    sys.exit()
 
 def print_info(track):
     print(track['name'] + ' - ' + track['artists'][0]['name'] + ' - ' + str(track['popularity']))
@@ -24,10 +14,31 @@ def history():
     for track in results['items']:
         print_info(track['track'])
 
-def playlists():
+class Track:
+    def __init__(self, name, artist):
+        self.name = name
+        self.artist = artist
+    def __repr__(self):
+        return self.name + ' - ' + self.artist + '\n'
+
+class Playlist:
+    def __init__(self, name, p_id):
+        tracks = sp.playlist_tracks(p_id)
+        self.tracks = []
+        for t in tracks['items']:
+            #print(t['track']['artists'][0]['name'])
+            self.tracks.append(Track(name=t['track']['name'], artist=t['track']['artists'][0]['name']))
+
+
+def playlist_info():
     results = sp.current_user_playlists()
-    for i in results['items']:
-        print(i['tracks'])
+    playlist_list = []
+    
+    for p in results['items']:
+        new_playlist = Playlist(name=p['name'], p_id=p['id'])
+        playlist_list.append(new_playlist)
+        print(new_playlist.tracks) 
+
 
 if token:
     sp = spotipy.Spotify(auth=token)
@@ -35,8 +46,8 @@ if token:
     results = sp.recommendation_genre_seeds()
     #results = sp.current_user_top_tracks(limit=100)
     
-    history()
-    #playlists()
+    #history()
+    playlist_info()
     '''
     tracks = results['items']
     for track in sorted(tracks, key= lambda t:t['popularity'], reverse=True):

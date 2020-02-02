@@ -22,12 +22,16 @@ class Track:
         self.artist = artist
     def __repr__(self):
         return self.name + ' - ' + self.artist + '\n'
+    def __eq__(self, right):
+        return self.name == right.name and self.artist == right.artist
+    def __hash__(self):
+        return hash(self.name + self.artist)
 
 class Playlist:
     def __init__(self, name, p_id):
         self.name = name
         tracks = sp.playlist_tracks(p_id)
-        self.tracks = []
+        self.tracks = set()
         try:
             for t in tracks['items']:
                 #print(t['track']['artists'][0]['name'])
@@ -36,9 +40,11 @@ class Playlist:
                     song_freq[track_object] += 1
                 else:
                     song_freq[track_object] = 1
-                self.tracks.append(Track(name=track_object[0], artist=track_object[1]))
+                self.tracks.add(Track(name=track_object[0], artist=track_object[1]))
         except TypeError:
             pass
+    def intersection(self, right):
+        return self.tracks.intersection(right)
 
 
 def playlist_info():
@@ -95,15 +101,22 @@ if token:
                 print('Invalid URL - Could not find playlist ID')
             
     # .group('id')
+    common = set()
     for link in playlists:
         print(prog.match(link).group('id'))
         p = sp.playlist(prog.match(link).group('id'))
-        #p = sp.playlist('37i9dQZEVXcSJQ5VDQlufK')
         one = Playlist(name=p['name'], p_id=p['id'])
-        print(one.name)
-        print(one.tracks)
-        print()
-       
+        if not common:
+            common = one.tracks
+        else:
+            common = one.intersection(common)
+        #print(one.name)
+        #print(one.tracks)
+        #print()
+    
+    print(common)
+   
+     
  
     '''
     tracks = results['items']
